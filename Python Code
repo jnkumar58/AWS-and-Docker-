@@ -1,0 +1,122 @@
+1.2)
+import boto3
+def start_instances(num_instances):
+new = boto3.resource('ec2')
+new_instance=new.create_instances(ImageId='ami-2d39803a', InstanceType = 't2.micro',
+MaxCount = num_instances, MinCount = 1, KeyName='jnkumar')
+print("Created new instances are:")
+for a in new_instance:
+a.wait_until_running()
+a.load()
+print(a.id,a.state)
+num=input('Enter number of EC2 instances to be created:::')
+start_instances(num)
+
+1.3) import boto3
+given_bucket=boto3.resource('s3') #creating a connection
+wsu_bucket=given_bucket.Bucket('wsu2016') #Accessing given bucket data by checking if
+it exists or empty
+try:
+given_bucket.meta.client.head_bucket(Bucket='wsu2016')
+except botocore.exceptions.ClientError as err:
+error = int(err.response['Error']['Code'])
+if error == 404:
+exists = False
+print("contents of given Bucket 'wsu2016':")
+for contents in wsu_bucket.objects.all():
+print(contents.key)
+#Creating new bucket named "U00814022'
+new_bucket= boto3.resource('s3')
+new_bucket.create_bucket(Bucket='U00814022')
+new_bucket1=new_bucket.Bucket('U00814022')
+for con in wsu_bucket.objects.all():
+try:
+con.copy_from(CopySource='wsu2016'+'/'+p.key)
+except:
+pass
+print("contents of created Bucket 'U00184022':")
+for content in new_bucket1.objects.all():
+print(content.key)
+
+
+Docker File:
+FROM blitznote/debootstrap-amd64:16.10
+RUN apt-get update
+RUN apt-get install -y apache2
+EXPOSE 80
+CMD /usr/sbin/apache2ctl -D foreground
+
+We can enable access to the web server which is running in the
+container to the external world by using port-forwarding. We need to
+specify a port from host and forward it to port on the container.
+
+1.4)
+Docker Hub link:
+https://cloud.docker.com/swarm/jnkumar58/repository/docker/jnkumar58/jnkumar/general
+
+2.1)
+
+import boto3
+import paramiko
+import time
+def start(num_instances):
+ec2 = boto3.resource('ec2')
+instances=ec2.create_instances(ImageId='ami-2d39803a', InstanceType =
+'t2.micro', MaxCount = num_instances, MinCount = 1, KeyName='jnkumar1')
+print("Created instances are:")
+for ins in instances:
+ins.wait_until_running()
+ins.load()
+print(ins.id,ins.state)
+instance_key =
+paramiko.RSAKey.from_private_key_file("/home/node/Downloads/jnkumar1.pem"
+)
+for x in range(10):
+time.sleep(5)
+for i in instances:
+login = paramiko.SSHClient()
+login.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+login.connect(i.public_dns_name, username = "ubuntu", pkey =
+instance_key )
+stdin , stdout, stderr = login.exec_command('top bn1| grep
+Cpu')
+print i.id+ '\t'+ stdout.read()
+
+
+2.2)
+import boto3
+import paramiko
+import time
+import StringIO
+def start(num_instances):
+ec2 = boto3.resource('ec2')
+instances=ec2.create_instances(ImageId='ami-2d39803a', InstanceType =
+'t2.micro', MaxCount = num_instances, MinCount = 1, KeyName='jnkumar1')
+print("Created instances are:")
+for ins in instances:
+ins.wait_until_running()
+ins.load()
+print(ins.id,ins.state)
+instance_key =
+paramiko.RSAKey.from_private_key_file("/home/node/Downloads/jnkumar1.pem"
+)
+while True:
+time.sleep(5)
+for i in instances:
+instance_key =
+paramiko.RSAKey.from_private_key_file("/home/node/Downloads/jnkumar1.pem"
+)
+login = paramiko.SSHClient()
+login.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+login.connect("i.public_dns_name", username = "ubuntu", pkey =
+instance_key )
+login.exec_command('sudo docker run -d -t ubuntu sh')
+login.exec_command('sudo docker run -d -t ubuntu sh')
+command="sudo docker ps | grep ubuntu | cut -d ' ' -f 1"
+stdin ,stdout, stderr= login.exec_command(command)
+x1=stdout.read()
+x2=x1.strip('\n')
+c2="sudo docker exec %s top -bn1 | grep CPU" % x2
+stdin ,stdout, stderr= login.exec_command(c2)
+print stdout.read()
+login.close()
